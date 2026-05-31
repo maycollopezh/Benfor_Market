@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - BenforMarket</title>
+    <link rel="stylesheet" href="css/estilos.css">
+</head>
+<body class="fondo-claro">
+
+    <div id="contenedor-alertas" style="position: fixed; top: 20px; right: 20px; z-index: 1000;"></div>
+
+    <div class="layout-sistema">
+        <aside class="barra-lateral">
+            <div class="logo-seccion">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+                <h2>BenforMarket</h2>
+            </div>
+            
+            <nav class="menu-navegacion">
+                <a href="dashboard.html" id="link-dashboard" class="item-menu">Dashboard</a>
+                <a href="inventario.html" id="link-inventario" class="item-menu">Inventario</a>
+                <a href="caja.html" id="link-caja" class="item-menu">Caja</a>
+            </nav>
+
+            <div class="perfil-usuario">
+                <p class="nombre-usuario">maycol</p>
+                <p class="rol-usuario">Administrador</p>
+                <button id="btn-cerrar-sesion" class="btn-secundario">Cerrar sesión</button>
+            </div>
+        </aside>
+
+        <main class="contenido-principal">
+            <header class="encabezado-dashboard">
+                <h1>Dashboard</h1>
+                <p>Resumen general de BenforMarket</p>
+            </header>
+
+            <div class="cuadricula-kpi">
+                <div class="tarjeta-kpi">
+                    <p class="titulo-kpi">Ingresos del día</p>
+                    <p class="valor-kpi">Bs. 0.00</p>
+                </div>
+                <div class="tarjeta-kpi">
+                    <p class="titulo-kpi">Ventas del día</p>
+                    <p class="valor-kpi">0</p>
+                </div>
+                <div class="tarjeta-kpi">
+                    <p class="titulo-kpi">Productos con stock bajo</p>
+                    <p class="valor-kpi">1</p>
+                </div>
+            </div>
+
+            <div class="cuadricula-tablas">
+                <div class="tarjeta-tabla">
+                    <h3>Top 5 productos más vendidos</h3>
+                    <table class="tabla-datos">
+                        <thead><tr><th>Producto</th><th>Unid.</th><th>Total</th></tr></thead>
+                        <tbody id="tabla-top-productos">
+                            </tbody>
+                    </table>
+                </div>
+
+                <div class="tarjeta-tabla">
+                    <h3>Próximos a vencer (15 días)</h3>
+                    <table class="tabla-datos">
+                        <thead><tr><th>Producto</th><th>Caducidad</th><th>Stock</th></tr></thead>
+                        <tbody id="tabla-vencimientos">
+                            <tr><td colspan="3" style="text-align:center; color:#64748b;">Ninguno</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="tarjeta-tabla panel-predictivo">
+                <h3>Panel Predictivo de Desabastecimiento</h3>
+                <p class="subtitulo-predictivo">Cálculo basado en S(t) = s₀ - k·t — k = consumo diario estimado</p>
+                <table class="tabla-datos">
+                    <thead><tr><th>Producto</th><th>Stock actual (s₀)</th><th>k (u/día)</th><th>Días para desabasto</th></tr></thead>
+                    <tbody id="tabla-predictiva">
+                        </tbody>
+                </table>
+            </div>
+        </main>
+    </div>
+
+
+    <script type="module" src="js/seguridad.js"></script>
+    <script type="module" src="js/dashboard.js"></script>
+</body>
+</html>

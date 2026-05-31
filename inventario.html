@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inventario - BenforMarket</title>
+    <link rel="stylesheet" href="css/estilos.css">
+</head>
+<body class="fondo-claro">
+
+    <div id="contenedor-alertas" class="contenedor-alertas"></div>
+
+    <div class="layout-sistema">
+        <aside class="barra-lateral">
+            <div class="logo-seccion">
+                <h2>BenforMarket</h2>
+            </div>
+            <nav class="menu-navegacion">
+                <a href="dashboard.html" id="link-dashboard" class="item-menu">Dashboard</a>
+                <a href="inventario.html" id="link-inventario" class="item-menu">Inventario</a>
+                <a href="caja.html" id="link-caja" class="item-menu">Caja</a>
+            </nav>
+            <div class="perfil-usuario">
+                <p class="nombre-usuario">maycol</p>
+                <p class="rol-usuario">Administrador</p>
+                <button id="btn-cerrar-sesion" class="btn-secundario">Cerrar sesión</button>
+            </div>
+        </aside>
+
+        <main class="contenido-principal">
+            <header class="encabezado-inventario">
+                <div>
+                    <h1>Inventario</h1>
+                    <p>Gestión de productos del almacén</p>
+                </div>
+                <button id="btn-abrir-modal" class="btn-principal ancho-auto">+ Nuevo Producto</button>
+            </header>
+
+            <div class="caja-buscador">
+                <input type="text" id="buscador-productos" placeholder="Buscar solo por nombre de producto...">
+            </div>
+
+            <div class="tarjeta-tabla">
+                <table class="tabla-datos">
+                    <thead>
+                        <tr>
+                            <th>Código</th>
+                            <th>Nombre</th>
+                            <th>Precio</th>
+                            <th>Stock</th>
+                            <th>Mínimo</th>
+                            <th>Caducidad</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="cuerpo-tabla-inventario">
+                        </tbody>
+                </table>
+            </div>
+        </main>
+    </div>
+
+    <div id="modal-producto" class="fondo-modal oculto">
+        <div class="tarjeta-modal">
+            <div class="cabecera-modal">
+                <h2>Nuevo producto</h2>
+                <button id="btn-cerrar-modal" class="btn-cerrar">x</button>
+            </div>
+            
+            <form id="formulario-producto">
+                <div class="grupo-entrada">
+                    <label>Código de barras (Escanea el producto)</label>
+                    <input type="text" id="input-codigo" required autocomplete="off">
+                </div>
+                
+                <div class="grupo-entrada">
+                    <label>Nombre</label>
+                    <input type="text" id="input-nombre" required>
+                </div>
+                
+                <div class="fila-entradas">
+                    <div class="grupo-entrada">
+                        <label>Precio (Bs.)</label>
+                        <input type="number" step="0.10" id="input-precio" required>
+                    </div>
+                    <div class="grupo-entrada">
+                        <label>Stock actual</label>
+                        <input type="number" id="input-stock" value="0" required>
+                    </div>
+                </div>
+
+                <div class="fila-entradas">
+                    <div class="grupo-entrada">
+                        <label>Stock mínimo</label>
+                        <input type="number" id="input-minimo" value="0" required>
+                    </div>
+                    <div class="grupo-entrada">
+                        <label>Caducidad</label>
+                        <input type="date" id="input-caducidad" required>
+                    </div>
+                </div>
+
+                <div class="pie-modal">
+                    <button type="submit" class="btn-principal ancho-auto">Crear</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="modal-editar" class="fondo-modal oculto">
+        <div class="tarjeta-modal">
+            <div class="cabecera-modal">
+                <h2>Editar producto</h2>
+                <button id="btn-cerrar-editar" class="btn-cerrar">x</button>
+            </div>
+            
+            <form id="formulario-editar">
+                <input type="hidden" id="edit-codigo-original">
+                
+                <div class="grupo-entrada">
+                    <label>Código de barras</label>
+                    <input type="text" id="edit-codigo" required>
+                </div>
+                
+                <div class="grupo-entrada">
+                    <label>Nombre</label>
+                    <input type="text" id="edit-nombre" required>
+                </div>
+                
+                <div class="fila-entradas">
+                    <div class="grupo-entrada">
+                        <label>Precio (Bs.)</label>
+                        <input type="number" step="0.10" id="edit-precio" required>
+                    </div>
+                    <div class="grupo-entrada">
+                        <label>Stock actual</label>
+                        <input type="number" id="edit-stock" required>
+                    </div>
+                </div>
+
+                <div class="fila-entradas">
+                    <div class="grupo-entrada">
+                        <label>Stock mínimo</label>
+                        <input type="number" id="edit-minimo" required>
+                    </div>
+                    <div class="grupo-entrada">
+                        <label>Caducidad</label>
+                        <input type="date" id="edit-caducidad" required>
+                    </div>
+                </div>
+
+                <div class="pie-modal">
+                    <button type="submit" class="btn-principal ancho-auto">Guardar cambios</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="modal-eliminar" class="fondo-modal oculto">
+        <div class="tarjeta-modal" style="max-width: 400px;">
+            <div class="cabecera-modal" style="margin-bottom: 0.5rem;">
+                <h2>¿Eliminar producto?</h2>
+            </div>
+            <p id="texto-eliminar" style="color: #64748b; margin-bottom: 1.5rem;">Se eliminará el producto permanentemente.</p>
+            <div class="pie-modal" style="gap: 1rem;">
+                <button id="btn-cancelar-eliminar" class="btn-secundario ancho-auto">Cancelar</button>
+                <button id="btn-confirmar-eliminar" class="btn-principal ancho-auto">Eliminar</button>
+            </div>
+        </div>
+    </div>
+
+
+    <script type="module" src="js/seguridad.js"></script>
+    <script type="module" src="js/inventario.js"></script>
+</body>
+</html>

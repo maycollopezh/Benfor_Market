@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Caja - BenforMarket</title>
+    <link rel="stylesheet" href="css/estilos.css">
+</head>
+<body class="fondo-claro">
+
+    <div id="contenedor-alertas" class="contenedor-alertas"></div>
+
+    <div class="layout-sistema">
+        <aside class="barra-lateral">
+            <div class="logo-seccion">
+                <h2>BenforMarket</h2>
+            </div>
+            <nav class="menu-navegacion">
+                <a href="dashboard.html" id="link-dashboard" class="item-menu">Dashboard</a>
+                <a href="inventario.html" id="link-inventario" class="item-menu">Inventario</a>
+                <a href="caja.html" id="link-caja" class="item-menu">Caja</a>
+            </nav>
+            <div class="perfil-usuario">
+                <p class="nombre-usuario">maycol</p>
+                <p class="rol-usuario">Administrador</p>
+                <button id="btn-cerrar-sesion" class="btn-secundario">Cerrar sesión</button>
+            </div>
+        </aside>
+
+        <main class="contenido-principal">
+            <header class="encabezado-inventario">
+                <div>
+                    <h1>Caja</h1>
+                    <p>Escanea un código o ingrésalo manualmente</p>
+                </div>
+            </header>
+
+            <div class="layout-caja">
+                <div class="columna-carrito">
+                    <form id="form-agregar-producto" class="barra-busqueda-caja">
+                        <input type="text" id="input-busqueda-caja" placeholder="Código de barras manual o nombre..." autocomplete="off">
+                        <button type="submit" class="btn-principal ancho-auto">Agregar</button>
+                    </form>
+
+                    <div class="tarjeta-tabla contenedor-carrito">
+                        <table class="tabla-datos tabla-carrito">
+                            <thead>
+                                <tr>
+                                    <th>Producto</th>
+                                    <th>Precio</th>
+                                    <th style="text-align: center;">Cantidad</th>
+                                    <th>Subtotal</th>
+                                    <th></th> </tr>
+                            </thead>
+                            <tbody id="cuerpo-carrito">
+                                <tr id="mensaje-carrito-vacio">
+                                    <td colspan="5" style="text-align: center; color: #64748b; padding: 3rem 0;">
+                                        Carrito vacío — escanea para agregar
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="columna-resumen">
+                    <div class="tarjeta-resumen">
+                        <h3>Resumen</h3>
+                        <div class="fila-resumen">
+                            <span>Productos</span>
+                            <span id="resumen-cantidad">0</span>
+                        </div>
+                        <div class="fila-resumen">
+                            <span>Subtotal</span>
+                            <span id="resumen-subtotal">Bs. 0.00</span>
+                        </div>
+                        <hr class="linea-separadora">
+                        <div class="fila-resumen total-resumen">
+                            <span>Total</span>
+                            <span id="resumen-total">Bs. 0.00</span>
+                        </div>
+                        <button id="btn-cobrar" class="btn-principal btn-grande" disabled>Cobrar</button>
+                        <button id="btn-vaciar" class="btn-secundario">Vaciar carrito</button>
+                    </div>
+
+                    <div class="tarjeta-resumen info-extra">
+                        <p style="font-size: 0.875rem; font-weight: bold; margin-bottom: 0.5rem;">Productos disponibles</p>
+                        <span class="etiqueta-gris" id="info-catalogo">0 en catálogo</span>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <div id="modal-cobro" class="fondo-modal oculto">
+        <div class="tarjeta-modal" style="max-width: 450px;">
+            <div class="cabecera-modal">
+                <h2 id="titulo-modal-cobro">Procesar pago — Total Bs. 0.00</h2>
+                <button id="btn-cerrar-cobro" class="btn-cerrar">x</button>
+            </div>
+            
+            <div class="tabs-pago">
+                <button id="tab-efectivo" class="tab-btn activo">Efectivo</button>
+                <button id="tab-qr" class="tab-btn">QR / Billetera</button>
+            </div>
+
+            <div id="vista-efectivo">
+                <div class="grupo-entrada">
+                    <label>Monto recibido (Bs.)</label>
+                    <input type="number" id="input-monto-recibido" min="0" step="0.10" placeholder="Ej. 100">
+                </div>
+                <div class="caja-cambio">
+                    <span>Cambio</span>
+                    <span id="texto-cambio">Bs. 0.00</span>
+                </div>
+                <button id="btn-confirmar-efectivo" class="btn-principal" style="width: 100%; margin-top: 1.5rem;">Confirmar pago</button>
+            </div>
+
+            <div id="vista-qr" class="oculto" style="text-align: center;">
+                <div class="caja-qr">
+                    <img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=BenforMarketPago" alt="Código QR">
+                </div>
+                <p style="color: #64748b; margin-bottom: 1.5rem; font-size: 0.875rem;">Escanea con tu billetera digital</p>
+                <button id="btn-confirmar-qr" class="btn-principal" style="width: 100%;">Marcar como pagado</button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module" src="js/seguridad.js"></script>
+    <script type="module" src="js/caja.js"></script>
+</body>
+</html>
