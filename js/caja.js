@@ -12,10 +12,51 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Referencias al DOM
     const inputBusqueda = document.getElementById('input-busqueda-caja');
+
+    // ==========================================
+    // LÓGICA DEL ESCÁNER DE CÁMARA (CAJA)
+    // ==========================================
+    const btnEscanearCaja = document.getElementById('btn-escanear-caja');
+    const lectorCamaraCaja = document.getElementById('lector-camara-caja');
+    let escannerCaja;
+
+    if (btnEscanearCaja) {
+        btnEscanearCaja.addEventListener('click', () => {
+            if (lectorCamaraCaja.style.display === 'block') {
+                if (escannerCaja) escannerCaja.stop().then(() => lectorCamaraCaja.style.display = 'none');
+            } else {
+                lectorCamaraCaja.style.display = 'block';
+                escannerCaja = new Html5Qrcode("lector-camara-caja");
+                
+                escannerCaja.start(
+                    { facingMode: "environment" },
+                    { fps: 10, qrbox: { width: 250, height: 100 } },
+                    (codigo) => {
+                        // Pone el código en la cajita
+                        inputBusqueda.value = codigo;
+                        
+                        // Apaga la cámara
+                        escannerCaja.stop().then(() => lectorCamaraCaja.style.display = 'none');
+                        
+                        // ¡Automáticamente simula darle al botón "Agregar"!
+                        formAgregar.dispatchEvent(new Event('submit'));
+                        mostrarAlertaExito('Producto escaneado');
+                    },
+                    (error) => {} // Ignorar
+                ).catch((err) => {
+                    mostrarAlertaError('Sin permisos de cámara');
+                    lectorCamaraCaja.style.display = 'none';
+                });
+            }
+        });
+    }
+
     const formAgregar = document.getElementById('form-agregar-producto');
     const cuerpoCarrito = document.getElementById('cuerpo-carrito');
     const mensajeVacio = document.getElementById('mensaje-carrito-vacio');
     const btnCobrar = document.getElementById('btn-cobrar');
+
+    
 
     // 3. AGREGAR PRODUCTO AL CARRITO
     formAgregar.addEventListener('submit', (e) => {
@@ -206,11 +247,43 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
 
-        // Guardar el nuevo stock en la base de datos simulada
+        // Guardar el nuevo stock en la base de datos
         localStorage.setItem('baseDatosInventario', JSON.stringify(inventario));
 
+        // ===============================================
+        // NUEVO: GUARDAR EL HISTORIAL DE VENTAS DEL DÍA
+        // ===============================================
+        let historialVentas = JSON.parse(localStorage.getItem('baseDatosVentas')) || [];
+        
+        // Obtenemos la fecha local exacta (Ej: 2026-06-05)
+        const ahora = new Date();
+        const year = ahora.getFullYear();
+        const month = String(ahora.getMonth() + 1).padStart(2, '0');
+        const day = String(ahora.getDate()).padStart(2, '0');
+        const fechaLocal = `${year}-${month}-${day}`;
+
+        // Creamos el comprobante interno de la venta
+        // Creamos el comprobante interno de la venta
+        const nuevaVenta = {
+            id: Date.now(),
+            fecha: fechaLocal,
+            total: totalCaja,
+            productos: carrito.map(item => ({
+                nombre: item.nombre,
+                cantidad: item.cantidad,
+                costo: item.costo,
+                subtotal: item.precio * item.cantidad
+            }))
+        };
+
+        // Guardamos la venta en el historial
+        historialVentas.push(nuevaVenta);
+        localStorage.setItem('baseDatosVentas', JSON.stringify(historialVentas));
+
         // Cerrar modal, vaciar carrito y avisar
-        modalCobro.classList.add('oculto');
+        const modalCobro = document.getElementById('modal-cobro');
+        if(modalCobro) modalCobro.classList.add('oculto');
+        
         carrito = [];
         actualizarInterfazCarrito();
         mostrarAlertaExito('¡Venta registrada exitosamente!');

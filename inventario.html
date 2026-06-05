@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Inventario - BenforMarket</title>
     <link rel="stylesheet" href="css/estilos.css">
+    <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+
 </head>
 <body class="fondo-claro">
 
@@ -69,8 +71,12 @@
             
             <form id="formulario-producto">
                 <div class="grupo-entrada">
-                    <label>Código de barras (Escanea el producto)</label>
-                    <input type="text" id="input-codigo" required autocomplete="off">
+                    <label>Código de barras</label>
+                    <div style="display: flex; gap: 0.5rem;">
+                        <input type="text" id="input-codigo" required autocomplete="off" style="flex-grow: 1;">
+                        <button type="button" id="btn-escanear" class="btn-secundario" style="width: auto; padding: 0.5rem 1rem;" title="Escanear con cámara">📷</button>
+                    </div>
+                    <div id="lector-camara" style="width: 100%; margin-top: 1rem; display: none; border-radius: 0.5rem; overflow: hidden;"></div>
                 </div>
                 
                 <div class="grupo-entrada">
@@ -80,24 +86,31 @@
                 
                 <div class="fila-entradas">
                     <div class="grupo-entrada">
-                        <label>Precio (Bs.)</label>
+                        <label>Costo Total de Factura (Bs.)</label>
+                        <input type="number" step="0.10" id="input-costo-total" required>
+                    </div>
+                    <div class="grupo-entrada">
+                        <label>Stock Entrante</label>
+                        <input type="number" id="input-stock" required>
+                    </div>
+                </div>
+                <p id="info-costo-unitario" style="font-size: 0.8rem; color: #64748b; margin-top: -1rem; margin-bottom: 1rem;">Costo unitario interno: Bs. 0.00</p>
+                
+                <div class="fila-entradas">
+                    <div class="grupo-entrada">
+                        <label>Precio Venta Sugerido (Bs.)</label>
                         <input type="number" step="0.10" id="input-precio" required>
                     </div>
                     <div class="grupo-entrada">
-                        <label>Stock actual</label>
-                        <input type="number" id="input-stock" value="0" required>
+                        <label>Stock mínimo</label>
+                        <input type="number" id="input-minimo" value="5" required>
                     </div>
                 </div>
+                <p id="sugerencia-margen" style="font-size: 0.8rem; font-weight: bold; margin-top: -1rem; margin-bottom: 1rem; height: 15px;"></p>
 
-                <div class="fila-entradas">
-                    <div class="grupo-entrada">
-                        <label>Stock mínimo</label>
-                        <input type="number" id="input-minimo" value="0" required>
-                    </div>
-                    <div class="grupo-entrada">
-                        <label>Caducidad</label>
-                        <input type="date" id="input-caducidad" required>
-                    </div>
+                <div class="grupo-entrada">
+                    <label>Caducidad</label>
+                    <input type="date" id="input-caducidad" required>
                 </div>
 
                 <div class="pie-modal">
@@ -129,24 +142,30 @@
                 
                 <div class="fila-entradas">
                     <div class="grupo-entrada">
-                        <label>Precio (Bs.)</label>
+                        <label>Precio de Compra (Bs.)</label>
+                        <input type="number" step="0.10" id="edit-costo" required>
+                    </div>
+                    <div class="grupo-entrada">
+                        <label>Precio de Venta (Bs.)</label>
                         <input type="number" step="0.10" id="edit-precio" required>
                     </div>
+                </div>
+                <p id="edit-sugerencia-margen" style="font-size: 0.8rem; font-weight: bold; margin-top: -1rem; margin-bottom: 1rem; height: 15px;"></p>
+
+                <div class="fila-entradas">
                     <div class="grupo-entrada">
                         <label>Stock actual</label>
                         <input type="number" id="edit-stock" required>
                     </div>
-                </div>
-
-                <div class="fila-entradas">
                     <div class="grupo-entrada">
                         <label>Stock mínimo</label>
                         <input type="number" id="edit-minimo" required>
                     </div>
-                    <div class="grupo-entrada">
-                        <label>Caducidad</label>
-                        <input type="date" id="edit-caducidad" required>
-                    </div>
+                </div>
+
+                <div class="grupo-entrada">
+                    <label>Caducidad</label>
+                    <input type="date" id="edit-caducidad" required>
                 </div>
 
                 <div class="pie-modal">

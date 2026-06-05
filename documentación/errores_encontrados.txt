@@ -1,0 +1,18 @@
+Lista de errores del funcionamiento del sistema: 04 de junio del 2026
+
+APARTADO - INVENTARIO:
+Cuando agrego un nuevo producto el sistema acepta repetidos, es decir que cuando agrego un nuevo producto pero este mismo ya existe (o sea que su nombre y su código de barras ya estaba registrado antes) pues el sistema me acepta, quedando con el problema de repetidos. Pero noté que se igualan su información como su precio y stock se queda con el primero que se registró, y también que si elimino uno de ellos pues el otro se elimina.
+
+APARTADO - CAJA
+Funciona correctamente en cuanto a pagos, cálculos matemáticos y también al momento de que vendamos un x producto pues ese producto si se descuenta en su stock en el apartado de inventario. También me gusta el aparatado de este mismo al momento de cobrar el dinero pues si esta por demás nos sale un cambio me gusta porque pineos que este dinero se va a descontar de la caja (es decir del dinero que ganamos en el día o mejor dicho del dinero acumulado) Pero el problema esta relacionado con el Dashboard principal. Cuando hacemos la venta de un producto pues el dinero que ganamos vendiendo no se registra (o sea no se actualiza en la pantalla del dashboard) en "Ingresos del día" ni en "ventas del día" ni "Top 5 productos más vendidos" ni se actualiza el "Panel predictivo de desabastecimiento" con los productos que tienen stock bajo 
+
+APARTADO - DASHBOARD
+
+Fuera de todo lo que puse en "APARTADO - CAJA" otro problema es el apartado "Próximos a vencer "15 días" imagino que para este aso pues la fecha debería de actualizarse de manera automática y consultar la fecha de la computadora o el celular cada día para que pueda hacer el proceso de verificar si los productos están próximos a vencer.
+
+
+IMPORTANTE
+
+Y hay algo que me estoy dando cuenta que es importante... en el apartado de inventario al momento de agregar productos pues también se debe de registrar el precio con el que nosotros estamos comprando ese producto esto para luego mostrar las ventas del dia (esto creo que ya está en la plataforma, donde mostramos absolutamente el dinero que conseguimos sin importar separarlo con el capital y ganancias) pero también debería de estar un apartado en donde nos muestre las ganancias fuera del capital invertido, ambos mostrando por dia pero siempre almacenándose de manera interna toda esa información para que lo podamos usar cuando lo necesitemos, por ejemplo cuando queramos preguntar a nuestro asistente de IA "Dame un reporte de las ganancias del último mes" en este caso la IA debería de entrar a la base de datos y revisarlo y sumar y demás para luego generarnos el reporte de manera detallada. Para esta parte pienso que al momento de registrar un producto por ejemplo PAN (100 en stock) pues nos debería de pedir el precio con el que estamos comprando ese stock de 100 y otro apartado que nos pida a que precio queremos vender por unidad, imagino que el sistema nos debería de sugerir un precio por unidad y que nos indique el margen de ganancia para que nosotros tengamos idea de eso y podamos poner el precio por unidad adecuado por el cual queremos vender
+
+A todo esto imagino que con todos estos cambios la base de datos se debería de actualizar agregando más tablas y/o atributos. Recuerda que queremos un sistema completamente funcional listo para que salga al mercado con todas las funciones que debe de seguir

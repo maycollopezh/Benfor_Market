@@ -1,36 +1,23 @@
-import { mostrarAlertaExito } from './interfaz.js';
+import { mostrarAlertaExito, mostrarAlertaError } from './interfaz.js';
 
 document.addEventListener('DOMContentLoaded', () => {
     
     // 1. BASE DE DATOS SIMULADA
-    let inventario = JSON.parse(localStorage.getItem('baseDatosInventario')) || [
-        { codigo: '123456789', nombre: 'Leche', precio: 10.00, stock: 50, minimo: 10, caducidad: '2026-08-14' },
-        { codigo: '12345678', nombre: 'Pan', precio: 2.00, stock: 7, minimo: 20, caducidad: '2026-06-20' }
-    ];
+    let inventario = JSON.parse(localStorage.getItem('baseDatosInventario')) || [];
 
     const cuerpoTabla = document.getElementById('cuerpo-tabla-inventario');
     const inputBuscador = document.getElementById('buscador-productos');
-
-    // Elementos de los Modales
     const modalCrear = document.getElementById('modal-producto');
     const modalEditar = document.getElementById('modal-editar');
     const modalEliminar = document.getElementById('modal-eliminar');
-    
-    // Variable para recordar qué producto estamos modificando/borrando
     let codigoProductoActivo = null; 
 
-    // 2. FUNCIÓN PARA PINTAR LA TABLA
+    // 2. RENDERIZAR TABLA
     function renderizarTabla(listaProductos) {
         cuerpoTabla.innerHTML = ''; 
-
         listaProductos.forEach(producto => {
             const fila = document.createElement('tr');
-            
-            if (producto.stock <= producto.minimo) {
-                fila.classList.add('fila-peligro');
-            }
-
-            // Agregamos data-codigo a los botones para saber a quién pertenecen
+            if (producto.stock <= producto.minimo) fila.classList.add('fila-peligro');
             fila.innerHTML = `
                 <td>${producto.codigo}</td>
                 <td>${producto.stock <= producto.minimo ? '⚠️ ' : ''}${producto.nombre}</td>
@@ -46,154 +33,220 @@ document.addEventListener('DOMContentLoaded', () => {
             cuerpoTabla.appendChild(fila);
         });
     }
-
     renderizarTabla(inventario);
 
-    // 3. BUSCADOR (Solo por nombre)
-    inputBuscador.addEventListener('input', (evento) => {
-        const textoBuscado = evento.target.value.toLowerCase();
-        const productosFiltrados = inventario.filter(producto => 
-            producto.nombre.toLowerCase().includes(textoBuscado)
-        );
-        renderizarTabla(productosFiltrados);
+    // 3. BUSCADOR
+    inputBuscador.addEventListener('input', (e) => {
+        const textoBuscado = e.target.value.toLowerCase();
+        const filtrados = inventario.filter(p => p.nombre.toLowerCase().includes(textoBuscado));
+        renderizarTabla(filtrados);
     });
 
     // ==========================================
-    // 4. LÓGICA: CREAR PRODUCTO
+    // 4. LÓGICA DEL ESCÁNER DE CÁMARA
+    // ==========================================
+    const btnEscanear = document.getElementById('btn-escanear');
+    const lectorCamara = document.getElementById('lector-camara');
+    let escannerHtml5;
+
+    if (btnEscanear) {
+        btnEscanear.addEventListener('click', () => {
+            if (lectorCamara.style.display === 'block') {
+                if (escannerHtml5) escannerHtml5.stop().then(() => lectorCamara.style.display = 'none');
+            } else {
+                lectorCamara.style.display = 'block';
+                escannerHtml5 = new Html5Qrcode("lector-camara");
+                escannerHtml5.start(
+                    { facingMode: "environment" },
+                    { fps: 10, qrbox: { width: 250, height: 100 } },
+                    (codigo) => {
+                        document.getElementById('input-codigo').value = codigo;
+                        escannerHtml5.stop().then(() => {
+                            lectorCamara.style.display = 'none';
+                            document.getElementById('input-nombre').focus();
+                        });
+                        mostrarAlertaExito('Código escaneado');
+                    },
+                    (error) => {} 
+                ).catch(() => {
+                    mostrarAlertaError('No se pudo acceder a la cámara.');
+                    lectorCamara.style.display = 'none';
+                });
+            }
+        });
+    }
+
+    // ==========================================
+    // 5. INTELIGENCIA DE PRECIOS Y GANANCIAS
+    // ==========================================
+    const inputCostoTotal = document.getElementById('input-costo-total');
+    const inputStock = document.getElementById('input-stock');
+    const inputPrecio = document.getElementById('input-precio');
+    const textoCostoUnit = document.getElementById('info-costo-unitario');
+    const textoMargen = document.getElementById('sugerencia-margen');
+
+    // Función que divide la factura y sugiere el 33%
+    function procesarFactura() {
+        const costoTotal = parseFloat(inputCostoTotal.value) || 0;
+        const stock = parseInt(inputStock.value) || 0;
+
+        if (costoTotal > 0 && stock > 0) {
+            const costoUnitario = costoTotal / stock;
+            textoCostoUnit.innerText = `Costo unitario interno: Bs. ${costoUnitario.toFixed(2)}`;
+
+            // Sugerimos precio multiplicando el costo por 1.33 (33% de ganancia)
+            const precioSugerido = costoUnitario * 1.33; 
+            inputPrecio.value = precioSugerido.toFixed(2);
+            
+            evaluarMargenManual(); // Pintamos el texto verde
+        } else {
+            textoCostoUnit.innerText = 'Costo unitario interno: Bs. 0.00';
+            textoMargen.innerText = '';
+        }
+    }
+
+    // Función por si el usuario borra la sugerencia y pone su propio precio
+    function evaluarMargenManual() {
+        const costoTotal = parseFloat(inputCostoTotal.value) || 0;
+        const stock = parseInt(inputStock.value) || 0;
+        const precioVenta = parseFloat(inputPrecio.value) || 0;
+
+        if (costoTotal > 0 && stock > 0 && precioVenta > 0) {
+            const costoUnitario = costoTotal / stock;
+            if (precioVenta > costoUnitario) {
+                const ganancia = precioVenta - costoUnitario;
+                const margen = (ganancia / precioVenta) * 100;
+                textoMargen.innerText = `Ganancia: Bs. ${ganancia.toFixed(2)} | Margen: ${margen.toFixed(1)}%`;
+                textoMargen.style.color = '#16a34a';
+            } else {
+                textoMargen.innerText = `¡Peligro! Pierdes dinero. Costo base: Bs. ${costoUnitario.toFixed(2)}`;
+                textoMargen.style.color = '#ef4444';
+            }
+        }
+    }
+
+    // Escuchamos cuando el usuario escribe
+    inputCostoTotal.addEventListener('input', procesarFactura);
+    inputStock.addEventListener('input', procesarFactura);
+    inputPrecio.addEventListener('input', evaluarMargenManual);
+
+
+    // ==========================================
+    // 6. CREAR PRODUCTO
     // ==========================================
     const formCrear = document.getElementById('formulario-producto');
-    const inputCodigoCrear = document.getElementById('input-codigo');
 
     document.getElementById('btn-abrir-modal').addEventListener('click', () => {
         modalCrear.classList.remove('oculto');
-        setTimeout(() => inputCodigoCrear.focus(), 100);
+        setTimeout(() => document.getElementById('input-codigo').focus(), 100);
     });
 
     document.getElementById('btn-cerrar-modal').addEventListener('click', () => {
         modalCrear.classList.add('oculto');
     });
 
-    inputCodigoCrear.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter') { e.preventDefault(); document.getElementById('input-nombre').focus(); }
-    });
-
     formCrear.addEventListener('submit', (e) => {
         e.preventDefault();
-        const nuevoProducto = {
-            codigo: inputCodigoCrear.value,
-            nombre: document.getElementById('input-nombre').value,
-            precio: parseFloat(document.getElementById('input-precio').value),
-            stock: parseInt(document.getElementById('input-stock').value),
+        
+        const codigoNuevo = document.getElementById('input-codigo').value.trim();
+        const nombreNuevo = document.getElementById('input-nombre').value.trim();
+
+        // Candado de Duplicados
+        const productoDuplicado = inventario.find(p => p.codigo === codigoNuevo || p.nombre.toLowerCase() === nombreNuevo.toLowerCase());
+        if (productoDuplicado) {
+            mostrarAlertaError('Ese código o nombre de producto ya existe.');
+            return; 
+        }
+
+        const costoTotal = parseFloat(inputCostoTotal.value);
+        const stock = parseInt(inputStock.value);
+        const costoUnitario = costoTotal / stock; // Lo que guardamos en la Base de Datos
+        const precio = parseFloat(inputPrecio.value);
+
+        if (precio <= costoUnitario) {
+            mostrarAlertaError('El precio de venta debe ser mayor al costo.');
+            return;
+        }
+
+        inventario.push({
+            codigo: codigoNuevo,
+            nombre: nombreNuevo,
+            costo: costoUnitario, // Guardamos el costo por unidad
+            precio: precio,
+            stock: stock,
             minimo: parseInt(document.getElementById('input-minimo').value),
             caducidad: document.getElementById('input-caducidad').value
-        };
-        inventario.push(nuevoProducto);
+        });
+        
         guardarYRefrescar();
         modalCrear.classList.add('oculto');
         formCrear.reset();
+        textoCostoUnit.innerText = 'Costo unitario interno: Bs. 0.00';
+        textoMargen.innerText = '';
         mostrarAlertaExito('Producto guardado correctamente');
     });
 
-
     // ==========================================
-    // 5. ESCUCHAR CLICS EN LA TABLA (Editar / Borrar)
+    // LÓGICA DE EDITAR Y BORRAR (Sin cambios grandes)
     // ==========================================
-    cuerpoTabla.addEventListener('click', (evento) => {
-        // Detectamos si hicieron clic en un botón de editar o borrar
-        const btnEditar = evento.target.closest('.btn-editar');
-        const btnBorrar = evento.target.closest('.btn-borrar');
-
-        if (btnEditar) {
-            codigoProductoActivo = btnEditar.getAttribute('data-codigo');
-            abrirModalEditar(codigoProductoActivo);
-        }
-
-        if (btnBorrar) {
-            codigoProductoActivo = btnBorrar.getAttribute('data-codigo');
-            abrirModalEliminar(codigoProductoActivo);
-        }
+    cuerpoTabla.addEventListener('click', (e) => {
+        const btnEditar = e.target.closest('.btn-editar');
+        const btnBorrar = e.target.closest('.btn-borrar');
+        if (btnEditar) abrirModalEditar(btnEditar.getAttribute('data-codigo'));
+        if (btnBorrar) abrirModalEliminar(btnBorrar.getAttribute('data-codigo'));
     });
 
-
-    // ==========================================
-    // 6. LÓGICA: EDITAR PRODUCTO
-    // ==========================================
     const formEditar = document.getElementById('formulario-editar');
-
     function abrirModalEditar(codigo) {
-        // Buscamos el producto en nuestro arreglo
-        const producto = inventario.find(p => p.codigo === codigo);
-        if (!producto) return;
-
-        // Llenamos las cajitas del formulario con los datos actuales
-        document.getElementById('edit-codigo-original').value = producto.codigo;
-        document.getElementById('edit-codigo').value = producto.codigo;
-        document.getElementById('edit-nombre').value = producto.nombre;
-        document.getElementById('edit-precio').value = producto.precio;
-        document.getElementById('edit-stock').value = producto.stock;
-        document.getElementById('edit-minimo').value = producto.minimo;
-        document.getElementById('edit-caducidad').value = producto.caducidad;
-
+        const p = inventario.find(x => x.codigo === codigo);
+        if (!p) return;
+        document.getElementById('edit-codigo-original').value = p.codigo;
+        document.getElementById('edit-codigo').value = p.codigo;
+        document.getElementById('edit-nombre').value = p.nombre;
+        document.getElementById('edit-costo').value = p.costo;
+        document.getElementById('edit-precio').value = p.precio;
+        document.getElementById('edit-stock').value = p.stock;
+        document.getElementById('edit-minimo').value = p.minimo;
+        document.getElementById('edit-caducidad').value = p.caducidad;
         modalEditar.classList.remove('oculto');
     }
 
-    document.getElementById('btn-cerrar-editar').addEventListener('click', () => {
-        modalEditar.classList.add('oculto');
-    });
+    document.getElementById('btn-cerrar-editar').addEventListener('click', () => modalEditar.classList.add('oculto'));
 
     formEditar.addEventListener('submit', (e) => {
         e.preventDefault();
-        
-        // Buscamos cuál era el producto original
         const codigoOriginal = document.getElementById('edit-codigo-original').value;
         const indice = inventario.findIndex(p => p.codigo === codigoOriginal);
-
-        // Lo reemplazamos con los nuevos datos
+        
         inventario[indice] = {
             codigo: document.getElementById('edit-codigo').value,
             nombre: document.getElementById('edit-nombre').value,
+            costo: parseFloat(document.getElementById('edit-costo').value),
             precio: parseFloat(document.getElementById('edit-precio').value),
             stock: parseInt(document.getElementById('edit-stock').value),
             minimo: parseInt(document.getElementById('edit-minimo').value),
             caducidad: document.getElementById('edit-caducidad').value
         };
-
         guardarYRefrescar();
         modalEditar.classList.add('oculto');
-        mostrarAlertaExito('Cambios guardados correctamente');
+        mostrarAlertaExito('Cambios guardados');
     });
 
-
-    // ==========================================
-    // 7. LÓGICA: ELIMINAR PRODUCTO
-    // ==========================================
     function abrirModalEliminar(codigo) {
-        const producto = inventario.find(p => p.codigo === codigo);
-        if (!producto) return;
-
-        // Personalizamos el texto para que diga el nombre exacto
-        document.getElementById('texto-eliminar').innerText = `Se eliminará "${producto.nombre}" permanentemente.`;
+        codigoProductoActivo = codigo;
         modalEliminar.classList.remove('oculto');
     }
 
-    document.getElementById('btn-cancelar-eliminar').addEventListener('click', () => {
-        modalEliminar.classList.add('oculto');
-    });
-
+    document.getElementById('btn-cancelar-eliminar').addEventListener('click', () => modalEliminar.classList.add('oculto'));
     document.getElementById('btn-confirmar-eliminar').addEventListener('click', () => {
-        // Filtramos el arreglo quitando el producto seleccionado
         inventario = inventario.filter(p => p.codigo !== codigoProductoActivo);
-        
         guardarYRefrescar();
         modalEliminar.classList.add('oculto');
         mostrarAlertaExito('Producto eliminado');
     });
 
-
-    // Función auxiliar para no repetir código
     function guardarYRefrescar() {
         localStorage.setItem('baseDatosInventario', JSON.stringify(inventario));
-        // Borramos lo que haya en el buscador y repintamos toda la tabla
         inputBuscador.value = '';
         renderizarTabla(inventario);
     }

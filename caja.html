@@ -1,10 +1,12 @@
 <!DOCTYPE html>
 <html lang="es">
-<head>
+<>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Caja - BenforMarket</title>
     <link rel="stylesheet" href="css/estilos.css">
+    <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+
 </head>
 <body class="fondo-claro">
 
@@ -37,9 +39,13 @@
 
             <div class="layout-caja">
                 <div class="columna-carrito">
-                    <form id="form-agregar-producto" class="barra-busqueda-caja">
-                        <input type="text" id="input-busqueda-caja" placeholder="Código de barras manual o nombre..." autocomplete="off">
-                        <button type="submit" class="btn-principal ancho-auto">Agregar</button>
+                    <form id="form-agregar-producto" class="barra-busqueda-caja" style="flex-wrap: wrap;">
+                        <div style="display: flex; gap: 0.5rem; flex-grow: 1; width: 100%;">
+                            <input type="text" id="input-busqueda-caja" placeholder="Código de barras o nombre..." autocomplete="off" style="flex-grow: 1;">
+                            <button type="button" id="btn-escanear-caja" class="btn-secundario" style="width: auto; padding: 0.5rem 1rem;">📷</button>
+                            <button type="submit" class="btn-principal ancho-auto" style="margin-top: 0;">Agregar</button>
+                        </div>
+                        <div id="lector-camara-caja" style="width: 100%; display: none; border-radius: 0.5rem; overflow: hidden; margin-top: 0.5rem;"></div>
                     </form>
 
                     <div class="tarjeta-tabla contenedor-carrito">

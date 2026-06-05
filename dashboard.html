@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard - BenforMarket</title>
     <link rel="stylesheet" href="css/estilos.css">
+    
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body class="fondo-claro">
 
@@ -38,16 +40,20 @@
 
             <div class="cuadricula-kpi">
                 <div class="tarjeta-kpi">
-                    <p class="titulo-kpi">Ingresos del día</p>
-                    <p class="valor-kpi">Bs. 0.00</p>
+                    <p class="titulo-kpi">Ingresos del día (Bruto)</p>
+                    <p class="valor-kpi" id="kpi-ingreso">Bs. 0.00</p>
+                </div>
+                <div class="tarjeta-kpi">
+                    <p class="titulo-kpi">Ganancia del día (Neta)</p>
+                    <p class="valor-kpi" id="kpi-ganancia" style="color: #16a34a;">Bs. 0.00</p>
                 </div>
                 <div class="tarjeta-kpi">
                     <p class="titulo-kpi">Ventas del día</p>
-                    <p class="valor-kpi">0</p>
+                    <p class="valor-kpi" id="kpi-ventas">0</p>
                 </div>
                 <div class="tarjeta-kpi">
                     <p class="titulo-kpi">Productos con stock bajo</p>
-                    <p class="valor-kpi">1</p>
+                    <p class="valor-kpi" id="kpi-alertas">0</p>
                 </div>
             </div>
 
@@ -76,7 +82,14 @@
                 <h3>Panel Predictivo de Desabastecimiento</h3>
                 <p class="subtitulo-predictivo">Cálculo basado en S(t) = s₀ - k·t — k = consumo diario estimado</p>
                 <table class="tabla-datos">
-                    <thead><tr><th>Producto</th><th>Stock actual (s₀)</th><th>k (u/día)</th><th>Días para desabasto</th></tr></thead>
+                    <thead>
+                        <tr>
+                            <th>Producto</th>
+                            <th>Stock Actual ($s_0$)</th>
+                            <th>Tasa ($k$)</th>
+                            <th>Días Restantes ($t$)</th>
+                            <th>Acción</th> </tr>
+                    </thead>
                     <tbody id="tabla-predictiva">
                         </tbody>
                 </table>
@@ -84,6 +97,20 @@
         </main>
     </div>
 
+    <div id="modal-grafica" class="fondo-modal oculto">
+        <div class="tarjeta-modal" style="max-width: 600px;">
+            <div class="cabecera-modal">
+                <h2 id="titulo-grafica" style="color: #0f172a;">Gráfica de Desabastecimiento</h2>
+                <button id="btn-cerrar-grafica" class="btn-cerrar">×</button>
+            </div>
+            <div style="position: relative; height: 300px; width: 100%;">
+                <canvas id="lienzo-grafica"></canvas>
+            </div>
+            <div class="pie-modal" style="justify-content: center; margin-top: 1.5rem;">
+                <p style="color: #64748b; font-weight: 500;">Modelo predictivo aplicado: <span style="color: #ef4444;">S(t) = s₀ - kt</span></p>
+            </div>
+        </div>
+    </div>
 
     <script type="module" src="js/seguridad.js"></script>
     <script type="module" src="js/dashboard.js"></script>
