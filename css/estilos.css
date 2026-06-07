@@ -242,10 +242,30 @@ body.fondo-claro {
 .subtitulo-predictivo { color: #64748b; font-size: 0.875rem; margin-bottom: 1rem; }
 
 /* Tablas limpias */
-.tabla-datos { width: 100%; border-collapse: collapse; text-align: left; }
-.tabla-datos th { color: #64748b; font-weight: 500; padding: 0.75rem 0; border-bottom: 1px solid #e2e8f0; }
-.tabla-datos td { padding: 1rem 0; border-bottom: 1px solid #e2e8f0; color: #0f172a;}
-.tabla-datos tr:last-child td { border-bottom: none; }
+.tabla-datos { 
+    width: 100%; 
+    border-collapse: collapse; 
+    text-align: left; 
+}
+
+.tabla-datos th { 
+    color: #64748b; 
+    font-weight: 500; 
+    padding: 1rem; /* <-- Le dimos 1rem de espacio a todos los lados */
+    border-bottom: 1px solid #e2e8f0; 
+    white-space: nowrap; /* <-- Evita que el título se parta en dos líneas */
+}
+
+.tabla-datos td { 
+    padding: 1rem; /* <-- Espacio a los lados para separar el contenido */
+    border-bottom: 1px solid #e2e8f0; 
+    color: #0f172a;
+    white-space: nowrap; /* <-- Evita que los datos se amontonen hacia abajo */
+}
+
+.tabla-datos tr:last-child td { 
+    border-bottom: none; 
+}
 
 /* Etiqueta Roja (Pastilla) */
 .etiqueta-roja {
