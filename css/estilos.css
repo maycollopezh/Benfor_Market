@@ -467,3 +467,129 @@ body.fondo-claro {
     padding: 1rem;
     margin-bottom: 1rem;
 }
+
+
+
+/* ==========================================
+   DISEÑO RESPONSIVO (Tablets y Celulares)
+   ========================================== */
+
+/* 1. Scroll horizontal para evitar que las tablas rompan la pantalla */
+.tarjeta-tabla {
+    overflow-x: auto;
+}
+
+/* ---- TABLETS (Pantallas hasta 1024px) ---- */
+@media (max-width: 1024px) {
+    .cuadricula-kpi {
+        grid-template-columns: repeat(2, 1fr); /* Pasa de 4 a 2 columnas */
+    }
+    
+    .cuadricula-tablas {
+        grid-template-columns: 1fr; /* Tablas una debajo de otra */
+    }
+    
+    .layout-caja {
+        grid-template-columns: 1fr; /* El carrito arriba y el resumen abajo */
+    }
+}
+
+/* ---- CELULARES (Pantallas hasta 768px) ---- */
+@media (max-width: 768px) {
+    /* Ajustes del layout principal */
+    .layout-sistema {
+        flex-direction: column; /* Apila todo verticalmente */
+        overflow-y: auto;
+    }
+
+    /* Transformar la barra lateral en un menú superior de navegación */
+    .barra-lateral {
+        width: 100%;
+        height: auto;
+        padding: 1rem;
+        border-right: none;
+        border-bottom: 1px solid #e2e8f0;
+        flex-direction: row;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .logo-seccion {
+        margin-bottom: 0;
+    }
+
+    .menu-navegacion {
+        flex-direction: row;
+        width: 100%;
+        justify-content: flex-start;
+        margin-top: 1rem;
+        margin-bottom: 1rem;
+        overflow-x: auto; /* Permite deslizar el menú horizontalmente */
+        gap: 0.5rem;
+    }
+
+    .item-menu {
+        padding: 0.5rem 1rem;
+        font-size: 0.875rem;
+        white-space: nowrap; /* Evita que el texto de los botones se rompa */
+    }
+
+    /* Ajuste de la información del usuario */
+    .perfil-usuario {
+        width: 100%;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-top: none;
+        padding-top: 0;
+    }
+
+    .rol-usuario {
+        margin-bottom: 0;
+    }
+
+    .btn-secundario {
+        width: auto;
+        padding: 0.5rem 1rem;
+    }
+
+    /* Espaciados del contenido principal */
+    .contenido-principal {
+        padding: 1rem;
+    }
+
+    .encabezado-inventario, .encabezado-dashboard {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+    }
+
+    .cuadricula-kpi {
+        grid-template-columns: 1fr; /* Una sola tarjeta KPI por fila */
+    }
+
+    /* Ajustes específicos para Caja y Modales */
+    .barra-busqueda-caja > div {
+        flex-direction: column;
+    }
+    
+    .barra-busqueda-caja input, 
+    .barra-busqueda-caja button {
+        width: 100%;
+    }
+
+    .fila-entradas {
+        flex-direction: column; /* Los inputs de los modales pasan a una sola columna */
+        gap: 0;
+    }
+    
+    .pie-modal {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+    
+    .pie-modal button {
+        width: 100%;
+    }
+}
