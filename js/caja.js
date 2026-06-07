@@ -1,10 +1,18 @@
 import { mostrarAlertaExito, mostrarAlertaError } from './interfaz.js';
+import { supabase } from './conexion.js';
 
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
 
-    // 1. CARGAMOS INVENTARIO DE LA BASE DE DATOS LOCAL
-    let inventario = JSON.parse(localStorage.getItem('baseDatosInventario')) || [];
-    document.getElementById('info-catalogo').innerText = `${inventario.length} en catálogo`;
+    // 1. CARGAMOS INVENTARIO DE SUPABASE
+    let inventario = [];
+    async function cargarInventarioCaja() {
+        const { data, error } = await supabase.from('productos').select('*');
+        if (!error && data) {
+            inventario = data;
+            document.getElementById('info-catalogo').innerText = `${inventario.length} en catálogo`;
+        }
+    }
+    await cargarInventarioCaja();
 
     // 2. ESTADO DEL CARRITO
     let carrito = [];
@@ -32,17 +40,12 @@ document.addEventListener('DOMContentLoaded', () => {
                     { facingMode: "environment" },
                     { fps: 10, qrbox: { width: 250, height: 100 } },
                     (codigo) => {
-                        // Pone el código en la cajita
                         inputBusqueda.value = codigo;
-                        
-                        // Apaga la cámara
                         escannerCaja.stop().then(() => lectorCamaraCaja.style.display = 'none');
-                        
-                        // ¡Automáticamente simula darle al botón "Agregar"!
                         formAgregar.dispatchEvent(new Event('submit'));
                         mostrarAlertaExito('Producto escaneado');
                     },
-                    (error) => {} // Ignorar
+                    (error) => {} 
                 ).catch((err) => {
                     mostrarAlertaError('Sin permisos de cámara');
                     lectorCamaraCaja.style.display = 'none';
@@ -56,49 +59,44 @@ document.addEventListener('DOMContentLoaded', () => {
     const mensajeVacio = document.getElementById('mensaje-carrito-vacio');
     const btnCobrar = document.getElementById('btn-cobrar');
 
-    
-
     // 3. AGREGAR PRODUCTO AL CARRITO
     formAgregar.addEventListener('submit', (e) => {
         e.preventDefault();
         const textoBuscado = inputBusqueda.value.trim().toLowerCase();
         if (textoBuscado === '') return;
 
-        // Buscamos si existe por código o por nombre exacto
+        // Buscamos si existe por código_barras o por nombre
         const productoEncontrado = inventario.find(p => 
-            p.codigo === textoBuscado || p.nombre.toLowerCase() === textoBuscado
+            p.codigo_barras === textoBuscado || p.nombre.toLowerCase() === textoBuscado
         );
 
         if (productoEncontrado) {
-            // Revisamos si ya lo teníamos en el carrito
-            const itemEnCarrito = carrito.find(item => item.codigo === productoEncontrado.codigo);
+            const itemEnCarrito = carrito.find(item => item.codigo_barras === productoEncontrado.codigo_barras);
 
             if (itemEnCarrito) {
-                // Si ya está, verificamos que haya stock suficiente para sumar 1 más
                 if (itemEnCarrito.cantidad < productoEncontrado.stock) {
                     itemEnCarrito.cantidad++;
                 } else {
                     mostrarAlertaError('No hay más stock disponible');
                 }
             } else {
-                // Si es nuevo en el carrito, revisamos si el stock no es 0
                 if (productoEncontrado.stock > 0) {
                     carrito.push({
-                        ...productoEncontrado, // Copiamos todos los datos
-                        cantidad: 1            // Le agregamos la propiedad cantidad
+                        ...productoEncontrado, 
+                        cantidad: 1            
                     });
                 } else {
                     mostrarAlertaError('Producto agotado');
                 }
             }
-            inputBusqueda.value = ''; // Limpiamos la cajita
+            inputBusqueda.value = ''; 
             actualizarInterfazCarrito();
         } else {
             mostrarAlertaError('Producto no encontrado');
         }
     });
 
-    // 4. ACTUALIZAR INTERFAZ (Pintar carrito y sumar totales)
+    // 4. ACTUALIZAR INTERFAZ
     function actualizarInterfazCarrito() {
         cuerpoCarrito.innerHTML = '';
         let totalProductos = 0;
@@ -119,7 +117,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 fila.innerHTML = `
                     <td>
                         <div style="font-weight: bold; color: #0f172a;">${item.nombre}</div>
-                        <div style="font-size: 0.75rem; color: #64748b;">${item.codigo}</div>
+                        <div style="font-size: 0.75rem; color: #64748b;">${item.codigo_barras}</div>
                     </td>
                     <td>Bs. ${item.precio.toFixed(2)}</td>
                     <td>
@@ -138,13 +136,12 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         }
 
-        // Actualizar Resumen Lateral
         document.getElementById('resumen-cantidad').innerText = totalProductos;
         document.getElementById('resumen-subtotal').innerText = `Bs. ${totalCaja.toFixed(2)}`;
         document.getElementById('resumen-total').innerText = `Bs. ${totalCaja.toFixed(2)}`;
     }
 
-    // 5. ESCUCHAR CLICS DENTRO DEL CARRITO (+, -, Quitar)
+    // 5. ESCUCHAR CLICS DENTRO DEL CARRITO
     cuerpoCarrito.addEventListener('click', (e) => {
         const btnSumar = e.target.closest('.btn-sumar');
         const btnRestar = e.target.closest('.btn-restar');
@@ -153,7 +150,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (btnSumar) {
             const index = btnSumar.getAttribute('data-index');
             const item = carrito[index];
-            const prodInventario = inventario.find(p => p.codigo === item.codigo);
+            const prodInventario = inventario.find(p => p.codigo_barras === item.codigo_barras);
             if (item.cantidad < prodInventario.stock) item.cantidad++;
             else mostrarAlertaError('Stock máximo alcanzado');
             actualizarInterfazCarrito();
@@ -167,12 +164,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (btnQuitar) {
             const index = btnQuitar.getAttribute('data-index');
-            carrito.splice(index, 1); // Lo borra del arreglo
+            carrito.splice(index, 1); 
             actualizarInterfazCarrito();
         }
     });
 
-    // Botón Vaciar Carrito
     document.getElementById('btn-vaciar').addEventListener('click', () => {
         carrito = [];
         actualizarInterfazCarrito();
@@ -185,6 +181,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const modalCobro = document.getElementById('modal-cobro');
     const inputMonto = document.getElementById('input-monto-recibido');
     const textoCambio = document.getElementById('texto-cambio');
+    const tabEfectivo = document.getElementById('tab-efectivo');
+    const tabQr = document.getElementById('tab-qr');
 
     btnCobrar.addEventListener('click', () => {
         document.getElementById('titulo-modal-cobro').innerText = `Procesar pago — Total Bs. ${totalCaja.toFixed(2)}`;
@@ -198,89 +196,76 @@ document.addEventListener('DOMContentLoaded', () => {
         modalCobro.classList.add('oculto');
     });
 
-    // Pestañas (Efectivo / QR)
-    const tabEfectivo = document.getElementById('tab-efectivo');
-    const tabQr = document.getElementById('tab-qr');
     const vistaEfectivo = document.getElementById('vista-efectivo');
     const vistaQr = document.getElementById('vista-qr');
 
-    // Cuando hacemos clic en Efectivo
     tabEfectivo.addEventListener('click', () => {
         tabEfectivo.classList.add('activo');
         tabQr.classList.remove('activo');
-        
-        vistaEfectivo.classList.remove('oculto'); // Mostramos efectivo
-        vistaQr.classList.add('oculto');          // Ocultamos QR
-        
-        inputMonto.focus(); // Ponemos el cursor listo para escribir
+        vistaEfectivo.classList.remove('oculto'); 
+        vistaQr.classList.add('oculto');          
+        inputMonto.focus(); 
     });
 
-    // Cuando hacemos clic en QR / Billetera
     tabQr.addEventListener('click', () => {
         tabQr.classList.add('activo');
         tabEfectivo.classList.remove('activo');
-        
-        vistaQr.classList.remove('oculto');       // Mostramos QR
-        vistaEfectivo.classList.add('oculto');    // Ocultamos efectivo
+        vistaQr.classList.remove('oculto');       
+        vistaEfectivo.classList.add('oculto');    
     });
 
-    // Calcular Cambio dinámicamente
     inputMonto.addEventListener('input', () => {
         const monto = parseFloat(inputMonto.value) || 0;
         const cambio = monto - totalCaja;
         if (cambio >= 0) {
             textoCambio.innerText = `Bs. ${cambio.toFixed(2)}`;
-            textoCambio.style.color = '#16a34a'; // Verde
+            textoCambio.style.color = '#16a34a';
         } else {
             textoCambio.innerText = 'Falta dinero';
-            textoCambio.style.color = '#ef4444'; // Rojo
+            textoCambio.style.color = '#ef4444';
         }
     });
 
-    // 7. CONFIRMAR LA VENTA (EL NÚCLEO DEL PROYECTO)
-    function finalizarVenta() {
-        // Descontar stock del inventario
-        carrito.forEach(itemVendido => {
-            const productoOriginal = inventario.find(p => p.codigo === itemVendido.codigo);
-            if (productoOriginal) {
-                productoOriginal.stock -= itemVendido.cantidad;
-            }
-        });
-
-        // Guardar el nuevo stock en la base de datos
-        localStorage.setItem('baseDatosInventario', JSON.stringify(inventario));
-
-        // ===============================================
-        // NUEVO: GUARDAR EL HISTORIAL DE VENTAS DEL DÍA
-        // ===============================================
-        let historialVentas = JSON.parse(localStorage.getItem('baseDatosVentas')) || [];
+    // 7. CONFIRMAR LA VENTA (CONEXIÓN SUPABASE EN CASCADA)
+    async function finalizarVenta() {
+        const metodoSeleccionado = tabEfectivo.classList.contains('activo') ? 'Efectivo' : 'QR / Billetera';
         
-        // Obtenemos la fecha local exacta (Ej: 2026-06-05)
-        const ahora = new Date();
-        const year = ahora.getFullYear();
-        const month = String(ahora.getMonth() + 1).padStart(2, '0');
-        const day = String(ahora.getDate()).padStart(2, '0');
-        const fechaLocal = `${year}-${month}-${day}`;
-
-        // Creamos el comprobante interno de la venta
-        // Creamos el comprobante interno de la venta
-        const nuevaVenta = {
-            id: Date.now(),
-            fecha: fechaLocal,
+        // 1. Guardar la Cabecera de la Venta
+        const { data: ventaGuardada, error: errorVenta } = await supabase.from('ventas').insert([{
             total: totalCaja,
-            productos: carrito.map(item => ({
-                nombre: item.nombre,
+            metodo_pago: metodoSeleccionado
+            // La fecha se pone sola en SQL con CURRENT_DATE
+        }]).select();
+
+        if (errorVenta || !ventaGuardada) {
+            mostrarAlertaError('Error al registrar la transacción de venta');
+            return;
+        }
+
+        const idVentaGenerado = ventaGuardada[0].id;
+
+        // 2. Guardar Detalles y Descontar Stock producto por producto
+        for (const item of carrito) {
+            // Guardamos el historial del producto vendido
+            await supabase.from('detalle_ventas').insert([{
+                venta_id: idVentaGenerado,
+                producto_id: item.id,
+                nombre_producto: item.nombre,
                 cantidad: item.cantidad,
-                costo: item.costo,
+                costo_historico: item.costo,
                 subtotal: item.precio * item.cantidad
-            }))
-        };
+            }]);
 
-        // Guardamos la venta en el historial
-        historialVentas.push(nuevaVenta);
-        localStorage.setItem('baseDatosVentas', JSON.stringify(historialVentas));
+            // Descontamos stock del producto en la Base de Datos
+            const productoOriginal = inventario.find(p => p.codigo_barras === item.codigo_barras);
+            const nuevoStock = productoOriginal.stock - item.cantidad;
+            
+            await supabase.from('productos').update({ stock: nuevoStock }).eq('id', item.id);
+        }
 
-        // Cerrar modal, vaciar carrito y avisar
+        // Refrescamos inventario local para no permitir vender algo que ya se agotó en la BD
+        await cargarInventarioCaja(); 
+
         const modalCobro = document.getElementById('modal-cobro');
         if(modalCobro) modalCobro.classList.add('oculto');
         
