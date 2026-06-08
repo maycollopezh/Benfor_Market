@@ -53,7 +53,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 
     // ==========================================
-    // 2. TODA TU LÓGICA ORIGINAL INTACTA
+    // 2. LÓGICA MATEMÁTICA
     // ==========================================
     function calcularKpisYGraficas() {
         const fechaHoy = new Date();
@@ -152,27 +152,41 @@ document.addEventListener('DOMContentLoaded', async () => {
             });
         }
 
-        // PANEL PREDICTIVO MATEMÁTICO
+
+    //TODO PANEL PREDICTIVO MATEMÁTICO
+    
         const cuerpoTablaPredictiva = document.getElementById('tabla-predictiva');
         cuerpoTablaPredictiva.innerHTML = '';
 
+        // Cálculo de la constante K
         inventario.forEach(producto => {
+            // 1. Obtener la sumatoria de ventas históricas del producto evaluado
             let totalVendidoHistorico = 0;
             if(conteoVentas[producto.nombre]) {
                 totalVendidoHistorico = conteoVentas[producto.nombre].unidades;
             }
 
+            // 2. CÁLCULO DE 'k': Tasa de consumo diario promedio
+            // Si hay historial, k = Total Vendido / 7 días. Si no hay ventas, k = 0.
             let kDiario = totalVendidoHistorico > 0 ? (totalVendidoHistorico / 7) : 0;
+
+            // 3. DESPEJE DE 't': Cálculo de días restantes de abastecimiento
+            // Fórmula aplicada: t = S_0 / k
             let diasRestantes = kDiario > 0 ? Math.floor(producto.stock / kDiario) : 'Sin datos';
 
             const fila = document.createElement('tr');
             
+            // 4. Lógica de Alertas Visuales (Semáforo de Desabastecimiento)
             let etiquetaDias = '';
             if (diasRestantes === 'Sin datos') {
                 etiquetaDias = `<span class="etiqueta-gris">Sin ventas aún</span>`;
             } else if (diasRestantes <= 3) {
+
+                // Alerta roja: El desabastecimiento (S(t) -> 0) ocurrirá en t <= 3
                 etiquetaDias = `<span class="etiqueta-roja">${diasRestantes} días</span>`; 
             } else {
+
+                // Estado óptimo
                 etiquetaDias = `<span class="etiqueta-gris" style="background:#f0fdf4; color:#16a34a; font-weight:bold;">${diasRestantes} días</span>`;
             }
 
@@ -225,8 +239,10 @@ document.addEventListener('DOMContentLoaded', async () => {
             graficoInstancia.destroy();
         }
 
-        let ejeX_Dias = [];
-        let ejeY_Stock = [];
+
+        let ejeX_Dias = [];  // Arreglo para la variable independiente (Tiempo 't')
+        let ejeY_Stock = [];  // Arreglo para la variable dependiente (Nivel de Stock 'S')
+
 
         const nombresDias = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
         const fechaActual = new Date(); 
@@ -244,18 +260,28 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
 
         if (k <= 0) {
+
+            // Comportamiento de una constante: No hay consumo, la recta es horizontal (Pendiente 0)
             ejeX_Dias = [obtenerEtiquetaDia(0), obtenerEtiquetaDia(7), obtenerEtiquetaDia(14), obtenerEtiquetaDia(30)];
             ejeY_Stock = [s0, s0, s0, s0];
         } else {
-            let diasTotales = Math.ceil(s0 / k);
-            let paso = Math.max(1, Math.floor(diasTotales / 5)); 
 
+            // Despeje del tiempo total hasta el vaciado absoluto (S(t) = 0)
+            let diasTotales = Math.ceil(s0 / k);
+            let paso = Math.max(1, Math.floor(diasTotales / 5));   // Segmentación del eje X
+
+             // BUCLE EVALUADOR: Evalúa la función S(t) = s_0 - kt en distintos puntos de 't'
             for (let t = 0; t <= diasTotales; t += paso) {
                 ejeX_Dias.push(obtenerEtiquetaDia(t));
+
+                // Aplicación directa del modelo matemático
                 let s_t = s0 - (k * t);
+
+                // Math.max(0, s_t) asegura que el gráfico no proyecte stocks negativos
                 ejeY_Stock.push(Math.max(0, s_t)); 
             }
             
+            // Cierre exacto en el eje X cuando el stock llega a 0
             const etiquetaFinal = obtenerEtiquetaDia(diasTotales);
             if (ejeX_Dias[ejeX_Dias.length - 1] !== etiquetaFinal) {
                 ejeX_Dias.push(etiquetaFinal);
@@ -263,6 +289,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
         }
 
+
+        // Configuración de instancia Chart.js para dibujar la proyección
         graficoInstancia = new Chart(ctxCanvas, {
             type: 'line',
             data: {

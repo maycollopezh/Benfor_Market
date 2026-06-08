@@ -245,6 +245,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         const idVentaGenerado = ventaGuardada[0].id;
 
         // 2. Guardar Detalles y Descontar Stock producto por producto
+    //TODO Actualización del parámetro inicial s_0 en la BD
+
         for (const item of carrito) {
             // Guardamos el historial del producto vendido
             await supabase.from('detalle_ventas').insert([{
@@ -257,9 +259,11 @@ document.addEventListener('DOMContentLoaded', async () => {
             }]);
 
             // Descontamos stock del producto en la Base de Datos
+            // Cálculo del nuevo Stock (s_0 - diferencial de salida)
             const productoOriginal = inventario.find(p => p.codigo_barras === item.codigo_barras);
             const nuevoStock = productoOriginal.stock - item.cantidad;
             
+            // Actualización de la variable en Supabase (Se establece un nuevo s_0)
             await supabase.from('productos').update({ stock: nuevoStock }).eq('id', item.id);
         }
 
